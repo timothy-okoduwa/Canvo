@@ -37,7 +37,7 @@ export default function PauseBgModal({ open, onClose }: PauseBgModalProps) {
           {/* Actions (Stacked full-width buttons) */}
           <div className="w-full space-y-3">
             <a
-              href="https://github.com/sponsors"
+              href="https://github.com/timothy-okoduwa/Canvo"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full h-11 bg-neutral-950 hover:bg-neutral-800 text-white font-bold rounded-xl text-[13.5px] flex items-center justify-center gap-2 shadow-sm transition-all"
