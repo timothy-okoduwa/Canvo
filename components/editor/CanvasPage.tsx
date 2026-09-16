@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useCanvas } from '@/hooks/useCanvas';
 import type * as fabric from 'fabric';
 import { Plus, Copy, Trash2 } from 'lucide-react';
+import Rulers from './Rulers';
 
 interface CanvasPageProps {
   pageIndex: number;
@@ -106,6 +107,7 @@ export default function CanvasPage({
           }`}
         style={{ width: width * zoom, height: height * zoom }}
       >
+        <Rulers width={width} height={height} zoom={zoom} />
         <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0 }} />
       </div>
     </div>

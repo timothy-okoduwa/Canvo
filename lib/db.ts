@@ -4,7 +4,7 @@
 // ============================================================
 
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { CanvoFile } from '@/types/canvas';
+import type { CanvoFile, BrandKit } from '@/types/canvas';
 
 interface CanvoDB extends DBSchema {
   files: {
@@ -22,10 +22,14 @@ interface CanvoDB extends DBSchema {
     };
     indexes: { 'by-created': number };
   };
+  brandKits: {
+    key: string;
+    value: BrandKit;
+  };
 }
 
 const DB_NAME = 'canvo-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBPDatabase<CanvoDB>> | null = null;
 
@@ -42,6 +46,10 @@ export function getDB(): Promise<IDBPDatabase<CanvoDB>> {
         if (!db.objectStoreNames.contains('uploads')) {
           const uploadStore = db.createObjectStore('uploads', { keyPath: 'id' });
           uploadStore.createIndex('by-created', 'createdAt');
+        }
+        // Brand kits store
+        if (!db.objectStoreNames.contains('brandKits')) {
+          db.createObjectStore('brandKits', { keyPath: 'id' });
         }
       },
     });
@@ -106,3 +114,21 @@ export async function deleteUpload(id: string): Promise<void> {
   const db = await getDB();
   await db.delete('uploads', id);
 }
+
+// ── Brand Kit CRUD ──────────────────────────────────────────
+
+export async function saveBrandKit(kit: BrandKit): Promise<void> {
+  const db = await getDB();
+  await db.put('brandKits', kit);
+}
+
+export async function getAllBrandKits(): Promise<BrandKit[]> {
+  const db = await getDB();
+  return db.getAll('brandKits');
+}
+
+export async function deleteBrandKit(id: string): Promise<void> {
+  const db = await getDB();
+  await db.delete('brandKits', id);
+}
+

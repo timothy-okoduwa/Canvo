@@ -35,6 +35,13 @@ import ImagesPanel from './panels/ImagesPanel';
 import IconsPanel from './panels/IconsPanel';
 import VectorsPanel from './panels/VectorsPanel';
 import AppsPanel from './panels/AppsPanel';
+import BrandPanel from './panels/BrandPanel';
+import ChartsPanel from './panels/ChartsPanel';
+import FramesPanel from './panels/FramesPanel';
+import MockupsPanel from './panels/MockupsPanel';
+
+import DrawingToolbar from './DrawingToolbar';
+import PresentationModal from './PresentationModal';
 
 interface EditorLayoutProps {
   fileId: string;
@@ -45,6 +52,8 @@ export default function EditorLayout({ fileId }: EditorLayoutProps) {
   const [fileName, setFileName] = useState('Untitled');
   const [activePanel, setActivePanel] = useState<PanelId | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
+  const [presentationOpen, setPresentationOpen] = useState(false);
+  const [drawingMode, setDrawingMode] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Stacked canvas states
@@ -374,6 +383,30 @@ export default function EditorLayout({ fileId }: EditorLayoutProps) {
           onClose={() => setActivePanel(null)}
         />
       ),
+      brand: (
+        <BrandPanel
+          canvas={activeCanvas}
+          onClose={() => setActivePanel(null)}
+        />
+      ),
+      charts: (
+        <ChartsPanel
+          canvas={activeCanvas}
+          onClose={() => setActivePanel(null)}
+        />
+      ),
+      frames: (
+        <FramesPanel
+          canvas={activeCanvas}
+          onClose={() => setActivePanel(null)}
+        />
+      ),
+      mockups: (
+        <MockupsPanel
+          canvas={activeCanvas}
+          onClose={() => setActivePanel(null)}
+        />
+      ),
       uploads: (
         <UploadsPanel
           canvas={activeCanvas}
@@ -410,13 +443,22 @@ export default function EditorLayout({ fileId }: EditorLayoutProps) {
   }
 
   return (
-    <div className="editor-container">
+    <div className="editor-container relative">
+      {/* Drawing Toolbar overlay */}
+      {drawingMode && (
+        <DrawingToolbar
+          canvas={activeCanvas}
+          onExit={() => setDrawingMode(false)}
+        />
+      )}
+
       {/* Top bar */}
       <TopBar
         fileId={fileId}
         fileName={fileName}
         onFileNameChange={setFileName}
         onExport={() => setExportOpen(true)}
+        onPresent={() => setPresentationOpen(true)}
       />
 
       {/* Inspector bar */}
@@ -428,6 +470,7 @@ export default function EditorLayout({ fileId }: EditorLayoutProps) {
         canUndo={canUndo}
         canRedo={canRedo}
         fitToScreen={fitToScreen}
+        onToggleDrawing={() => setDrawingMode((prev) => !prev)}
       />
 
       {/* Body: sidebar + panel + scrollable stack + properties */}
@@ -483,6 +526,15 @@ export default function EditorLayout({ fileId }: EditorLayoutProps) {
         onClose={() => setExportOpen(false)}
         canvas={activeCanvas}
         fileName={fileName}
+      />
+
+      {/* Presentation modal */}
+      <PresentationModal
+        open={presentationOpen}
+        onClose={() => setPresentationOpen(false)}
+        pages={pages}
+        width={file.width}
+        height={file.height}
       />
     </div>
   );

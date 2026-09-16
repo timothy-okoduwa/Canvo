@@ -300,3 +300,360 @@ export function moveLayerToBack(canvas: fabric.Canvas) {
   canvas.sendObjectToBack(active);
   canvas.renderAll();
 }
+
+// ── Advanced Text Effects ────────────────────────────────────
+
+export type TextEffectType = 'none' | 'shadow' | 'glow' | 'stroke' | 'neon' | 'background';
+
+export function applyTextEffect(
+  canvas: fabric.Canvas,
+  effect: TextEffectType,
+  options?: { color?: string; width?: number; blur?: number; bg?: string }
+) {
+  const active = canvas.getActiveObject();
+  if (!active || !(active instanceof fabric.IText || active instanceof fabric.Textbox || active instanceof fabric.Text)) {
+    return;
+  }
+
+  const { color = '#000000', width = 2, blur = 10, bg = '#FFD700' } = options || {};
+
+  switch (effect) {
+    case 'shadow':
+      active.set({
+        shadow: new fabric.Shadow({
+          color: color || 'rgba(0,0,0,0.4)',
+          blur: blur || 8,
+          offsetX: 4,
+          offsetY: 4,
+        }),
+      });
+      break;
+    case 'glow':
+      active.set({
+        shadow: new fabric.Shadow({
+          color: color || '#E8715A',
+          blur: blur || 20,
+          offsetX: 0,
+          offsetY: 0,
+        }),
+      });
+      break;
+    case 'neon':
+      active.set({
+        stroke: color || '#38BDF8',
+        strokeWidth: width || 2,
+        shadow: new fabric.Shadow({
+          color: color || '#38BDF8',
+          blur: 25,
+          offsetX: 0,
+          offsetY: 0,
+        }),
+      });
+      break;
+    case 'stroke':
+      active.set({
+        stroke: color || '#000000',
+        strokeWidth: width || 3,
+        shadow: undefined,
+      });
+      break;
+    case 'background':
+      active.set({
+        backgroundColor: bg || '#FEF08A',
+        shadow: undefined,
+      });
+      break;
+    case 'none':
+    default:
+      active.set({
+        shadow: undefined,
+        stroke: undefined,
+        strokeWidth: 0,
+        backgroundColor: undefined,
+      });
+      break;
+  }
+  canvas.renderAll();
+  canvas.fire('object:modified');
+}
+
+export function addCurvedText(canvas: fabric.Canvas, textString = 'Curved Text Banner') {
+  const path = new fabric.Path('M 50 150 Q 250 50 450 150', {
+    fill: '',
+    stroke: '',
+    visible: false,
+  });
+
+  const curved = new fabric.IText(textString, {
+    fontFamily: 'DM Sans, sans-serif',
+    fontSize: 32,
+    fill: '#1A1A18',
+    path: path,
+    left: canvas.getWidth() / 2 - 200,
+    top: canvas.getHeight() / 2 - 50,
+  });
+
+  canvas.add(path);
+  canvas.add(curved);
+  canvas.setActiveObject(curved);
+  canvas.renderAll();
+}
+
+// ── Chart Generator ──────────────────────────────────────────
+
+export function addChartToCanvas(
+  canvas: fabric.Canvas,
+  type: 'bar' | 'pie' | 'line' | 'donut',
+  title = 'Sales Report',
+  data = [
+    { label: 'Q1', value: 40, color: '#3B82F6' },
+    { label: 'Q2', value: 65, color: '#10B981' },
+    { label: 'Q3', value: 85, color: '#F59E0B' },
+    { label: 'Q4', value: 50, color: '#EC4899' },
+  ]
+) {
+  const elements: fabric.FabricObject[] = [];
+  const width = 400;
+  const height = 300;
+  const padding = 40;
+
+  // Background card
+  const card = new fabric.Rect({
+    width,
+    height,
+    fill: '#FFFFFF',
+    rx: 16,
+    ry: 16,
+    stroke: '#E5E7EB',
+    strokeWidth: 1,
+    shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.06)', blur: 15, offsetX: 0, offsetY: 4 }),
+  });
+  elements.push(card);
+
+  // Title
+  const titleText = new fabric.Text(title, {
+    fontSize: 18,
+    fontWeight: 'bold',
+    fontFamily: 'DM Sans, sans-serif',
+    fill: '#1F2937',
+    left: 20,
+    top: 20,
+  });
+  elements.push(titleText);
+
+  if (type === 'bar') {
+    const chartWidth = width - padding * 2;
+    const chartHeight = height - padding * 2 - 20;
+    const maxValue = Math.max(...data.map((d) => d.value), 100);
+    const barWidth = (chartWidth / data.length) * 0.6;
+    const gap = (chartWidth / data.length) * 0.4;
+
+    data.forEach((d, i) => {
+      const barHeight = (d.value / maxValue) * chartHeight;
+      const x = padding + i * (barWidth + gap) + gap / 2;
+      const y = height - padding - barHeight;
+
+      const bar = new fabric.Rect({
+        left: x,
+        top: y,
+        width: barWidth,
+        height: barHeight,
+        fill: d.color,
+        rx: 6,
+        ry: 6,
+      });
+      const lbl = new fabric.Text(d.label, {
+        left: x + barWidth / 2 - 8,
+        top: height - padding + 8,
+        fontSize: 12,
+        fontFamily: 'DM Sans, sans-serif',
+        fill: '#6B7280',
+      });
+      elements.push(bar, lbl);
+    });
+  } else if (type === 'pie' || type === 'donut') {
+    const total = data.reduce((acc, d) => acc + d.value, 0);
+    const cx = width / 2;
+    const cy = height / 2 + 10;
+    const r = 80;
+    let startAngle = -Math.PI / 2;
+
+    data.forEach((d) => {
+      const sliceAngle = (d.value / total) * Math.PI * 2;
+      const endAngle = startAngle + sliceAngle;
+
+      const x1 = cx + r * Math.cos(startAngle);
+      const y1 = cy + r * Math.sin(startAngle);
+      const x2 = cx + r * Math.cos(endAngle);
+      const y2 = cy + r * Math.sin(endAngle);
+      const largeArc = sliceAngle > Math.PI ? 1 : 0;
+
+      const pathData = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+      const slice = new fabric.Path(pathData, {
+        fill: d.color,
+        stroke: '#FFFFFF',
+        strokeWidth: 2,
+      });
+      elements.push(slice);
+      startAngle = endAngle;
+    });
+
+    if (type === 'donut') {
+      const hole = new fabric.Circle({
+        left: cx - 40,
+        top: cy - 40,
+        radius: 40,
+        fill: '#FFFFFF',
+      });
+      elements.push(hole);
+    }
+  } else if (type === 'line') {
+    const chartWidth = width - padding * 2;
+    const chartHeight = height - padding * 2 - 20;
+    const maxValue = Math.max(...data.map((d) => d.value), 100);
+    const step = chartWidth / (data.length - 1 || 1);
+
+    const points: fabric.XY[] = data.map((d, i) => ({
+      x: padding + i * step,
+      y: height - padding - (d.value / maxValue) * chartHeight,
+    }));
+
+    let pathStr = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 1; i < points.length; i++) {
+      pathStr += ` L ${points[i].x} ${points[i].y}`;
+    }
+
+    const linePath = new fabric.Path(pathStr, {
+      fill: '',
+      stroke: '#3B82F6',
+      strokeWidth: 4,
+    });
+    elements.push(linePath);
+
+    points.forEach((p, i) => {
+      const dot = new fabric.Circle({
+        left: p.x - 5,
+        top: p.y - 5,
+        radius: 5,
+        fill: '#3B82F6',
+        stroke: '#FFFFFF',
+        strokeWidth: 2,
+      });
+      const lbl = new fabric.Text(data[i].label, {
+        left: p.x - 10,
+        top: height - padding + 8,
+        fontSize: 12,
+        fontFamily: 'DM Sans, sans-serif',
+        fill: '#6B7280',
+      });
+      elements.push(dot, lbl);
+    });
+  }
+
+  const group = new fabric.Group(elements, {
+    left: canvas.getWidth() / 2 - width / 2,
+    top: canvas.getHeight() / 2 - height / 2,
+  });
+
+  canvas.add(group);
+  canvas.setActiveObject(group);
+  canvas.renderAll();
+}
+
+// ── Masked Image Frames ──────────────────────────────────────
+
+export function addImageFrame(
+  canvas: fabric.Canvas,
+  imageUrl: string,
+  shapeType: 'circle' | 'rect' | 'star' | 'phone'
+) {
+  const imgEl = new Image();
+  imgEl.crossOrigin = 'anonymous';
+  imgEl.onload = () => {
+    const img = new fabric.FabricImage(imgEl);
+    const w = 260;
+    const h = 260;
+    img.scaleToWidth(w);
+
+    let clipObj: fabric.FabricObject;
+    if (shapeType === 'circle') {
+      clipObj = new fabric.Circle({
+        radius: w / 2,
+        originX: 'center',
+        originY: 'center',
+      });
+    } else if (shapeType === 'phone') {
+      clipObj = new fabric.Rect({
+        width: 180,
+        height: 360,
+        rx: 24,
+        ry: 24,
+        originX: 'center',
+        originY: 'center',
+      });
+    } else {
+      clipObj = new fabric.Rect({
+        width: w,
+        height: h,
+        rx: 16,
+        ry: 16,
+        originX: 'center',
+        originY: 'center',
+      });
+    }
+
+    img.set({
+      clipPath: clipObj,
+      left: canvas.getWidth() / 2 - w / 2,
+      top: canvas.getHeight() / 2 - h / 2,
+    });
+
+    canvas.add(img);
+    canvas.setActiveObject(img);
+    canvas.renderAll();
+  };
+  imgEl.src = imageUrl;
+}
+
+// ── Freehand Drawing Utilities ───────────────────────────────
+
+export function configureDrawingBrush(
+  canvas: fabric.Canvas,
+  tool: 'pen' | 'marker' | 'highlighter' | 'eraser',
+  color = '#1A1A18',
+  width = 5
+) {
+  if (tool === 'eraser') {
+    // In Fabric v6/v7, EraserBrush is available or PencilBrush with clear stroke
+    const eraser = new fabric.PencilBrush(canvas);
+    eraser.color = '#FFFFFF'; // or background color
+    eraser.width = width * 3;
+    canvas.freeDrawingBrush = eraser;
+    canvas.isDrawingMode = true;
+    return;
+  }
+
+  const brush = new fabric.PencilBrush(canvas);
+  brush.width = tool === 'marker' ? width * 2.5 : width;
+
+  if (tool === 'highlighter') {
+    // Semi-transparent highlighter color
+    brush.color = color.startsWith('#') ? hexToRgba(color, 0.4) : color;
+    brush.width = width * 4;
+  } else {
+    brush.color = color;
+  }
+
+  canvas.freeDrawingBrush = brush;
+  canvas.isDrawingMode = true;
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  let c = hex.replace('#', '');
+  if (c.length === 3) {
+    c = c.split('').map((x) => x + x).join('');
+  }
+  const num = parseInt(c, 16);
+  return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
+}
+

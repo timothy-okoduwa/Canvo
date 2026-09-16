@@ -51,7 +51,51 @@ export const PRESETS: CanvasPreset[] = [
 ];
 
 /** Sidebar panel identifiers */
-export type PanelId = 'layers' | 'uploads' | 'images' | 'icons' | 'vectors' | 'apps';
+export type PanelId =
+  | 'layers'
+  | 'uploads'
+  | 'images'
+  | 'icons'
+  | 'vectors'
+  | 'apps'
+  | 'brand'
+  | 'charts'
+  | 'frames'
+  | 'mockups';
+
+/** Freehand drawing tool options */
+export type DrawingTool = 'select' | 'pen' | 'marker' | 'highlighter' | 'eraser';
+
+/** Brand Kit definitions */
+export interface BrandColor {
+  id: string;
+  name: string;
+  hex: string;
+}
+
+export interface BrandKit {
+  id: string;
+  name: string;
+  colors: BrandColor[];
+  logos: string[]; // data URLs or image URLs
+  fonts: { header: string; body: string; accent: string };
+}
+
+/** Chart types & data */
+export type ChartType = 'bar' | 'pie' | 'line' | 'donut';
+
+export interface ChartDataItem {
+  label: string;
+  value: number;
+  color?: string;
+}
+
+export interface ChartConfig {
+  type: ChartType;
+  title: string;
+  data: ChartDataItem[];
+}
+
 
 /** Shape types available in the bottom toolbar */
 export type ShapeType = 'rect' | 'circle' | 'triangle' | 'line' | 'arrow' | 'star';

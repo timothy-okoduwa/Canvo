@@ -9,6 +9,7 @@ interface TopBarProps {
   fileName: string;
   onFileNameChange: (name: string) => void;
   onExport: () => void;
+  onPresent: () => void;
 }
 
 export default function TopBar({
@@ -16,6 +17,7 @@ export default function TopBar({
   fileName,
   onFileNameChange,
   onExport,
+  onPresent,
 }: TopBarProps) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
@@ -88,18 +90,27 @@ export default function TopBar({
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Export button */}
-      <button
-        onClick={onExport}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-bg)] transition-colors cursor-pointer"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="7 10 12 15 17 10" />
-          <line x1="12" y1="15" x2="12" y2="3" />
-        </svg>
-        Export
-      </button>
+      {/* Action buttons */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onPresent}
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-neutral-900 text-white hover:bg-neutral-800 shadow-sm transition-colors cursor-pointer"
+        >
+          <span>▶</span> Present
+        </button>
+
+        <button
+          onClick={onExport}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-bg)] transition-colors cursor-pointer"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Export
+        </button>
+      </div>
     </div>
   );
 }

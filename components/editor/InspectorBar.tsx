@@ -20,6 +20,9 @@ import { deleteSelected } from '@/lib/fabric-utils';
 import PauseBgModal from '@/components/ui/PauseBgModal';
 import CropModal from '@/components/editor/CropModal';
 
+import { pickColorWithEyeDropper, isEyeDropperSupported } from '@/lib/eyedropper';
+import { applyTextEffect, addCurvedText } from '@/lib/fabric-utils';
+
 interface InspectorBarProps {
   canvas: fabric.Canvas | null;
   zoom: number;
@@ -28,6 +31,7 @@ interface InspectorBarProps {
   canUndo: boolean;
   canRedo: boolean;
   fitToScreen: () => void;
+  onToggleDrawing?: () => void;
 }
 
 export default function InspectorBar({
@@ -38,6 +42,7 @@ export default function InspectorBar({
   canUndo,
   canRedo,
   fitToScreen,
+  onToggleDrawing,
 }: InspectorBarProps) {
   const [selected, setSelected] = useState<fabric.FabricObject | null>(null);
   const [props, setProps] = useState({
@@ -555,8 +560,40 @@ export default function InspectorBar({
         )}
       </div>
 
-      {/* Global Canvas actions (Fit + Undo/Redo) */}
+      {/* Global Canvas actions (Fit + Undo/Redo + Drawing + Eyedropper) */}
       <div className="flex items-center gap-2 shrink-0">
+        {onToggleDrawing && (
+          <button
+            onClick={onToggleDrawing}
+            className="h-8 px-2.5 rounded-lg flex items-center gap-1.5 border border-neutral-300 bg-white hover:bg-neutral-100 font-semibold text-xs transition-colors cursor-pointer text-neutral-800"
+            title="Toggle Freehand Drawing Mode"
+          >
+            <span>✏️</span> Draw
+          </button>
+        )}
+
+        {isEyeDropperSupported() && (
+          <button
+            onClick={async () => {
+              const hex = await pickColorWithEyeDropper();
+              if (hex && canvas) {
+                const active = canvas.getActiveObject();
+                if (active) {
+                  active.set('fill', hex);
+                  canvas.renderAll();
+                } else {
+                  canvas.set('backgroundColor', hex);
+                  canvas.renderAll();
+                }
+              }
+            }}
+            className="h-8 w-8 rounded-lg flex items-center justify-center border border-[var(--color-border)] hover:bg-[var(--color-bg)] transition-colors cursor-pointer text-neutral-700"
+            title="Pick color from screen (Eyedropper)"
+          >
+            👁️
+          </button>
+        )}
+
         {/* Zoom Fit */}
         <button
           onClick={fitToScreen}
